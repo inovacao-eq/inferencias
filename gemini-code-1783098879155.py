@@ -156,3 +156,30 @@ if arquivo_upload is not None:
                 else:
                     g1 = dados_filtrados[dados_filtrados[var_cat] == grupos[0]][var_num]
                     g2 = dados_filtrados[dados_filtrados[var_cat] == grupos[1]][var_num]
+                    
+                    st.write(f"**Média do grupo '{grupos[0]}':** {round(g1.mean(), 2)} (DP: {round(g1.std(), 2)})")
+                    st.write(f"**Média do grupo '{grupos[1]}':** {round(g2.mean(), 2)} (DP: {round(g2.std(), 2)})")
+                    
+                    # Gráfico comparativo
+                    fig = px.box(dados_filtrados, x=var_cat, y=var_num, color=var_cat, title="Comparação dos Grupos")
+                    st.plotly_chart(fig, use_container_width=True)
+                    
+                    # Cálculo do Teste T
+                    t_stat, p_val_t = stats.ttest_ind(g1, g2, equal_var=False)
+                    
+                    st.markdown("---")
+                    st.subheader("Resultado do Teste T")
+                    col_t1, col_t2 = st.columns(2)
+                    col_t1.metric("Estatística T", round(t_stat, 4))
+                    col_t2.metric("p-valor", round(p_val_t, 5))
+                    
+                    if p_val_t < 0.05:
+                        st.success(f"📌 **Diferença Significativa (p < 0.05).**\n\n"
+                                   f"A diferença entre as médias dos dois grupos é estatisticamente relevante. "
+                                   f"O fator '{var_cat}' influencia o resultado de '{var_num}'.")
+                    else:
+                        st.error(f"📌 **Sem Diferença Significativa (p >= 0.05).**\n\n"
+                                 f"A diferença entre as médias pode ser mero fruto do acaso. Não há evidências estatísticas de impacto.")
+                                 
+    except Exception as e:
+        st.error(f"Ocorreu um erro geral: {e}")
